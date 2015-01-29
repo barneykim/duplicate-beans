@@ -1,0 +1,57 @@
+ext {
+    javaVersion = '1.7'
+    fileEncoding = 'UTF-8'
+    springVersion = '4.1.4.RELEASE'
+    slf4jVersion = '1.7.5'
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse-wtp'
+apply plugin: 'war'
+
+repositories {
+    mavenCentral()
+}
+dependencies {
+    compile(
+        "org.slf4j:slf4j-api:${slf4jVersion}",
+        "org.slf4j:slf4j-log4j12:${slf4jVersion}",
+        "org.slf4j:jcl-over-slf4j:${slf4jVersion}",
+        "log4j:log4j:1.2.17"
+    )
+    compile (
+        "org.springframework:spring-core:${springVersion}",
+        "org.springframework:spring-context:${springVersion}",
+        "org.springframework:spring-beans:${springVersion}",
+        "org.springframework:spring-expression:${springVersion}",
+        "org.springframework:spring-webmvc:${springVersion}"
+    )
+    providedCompile (
+        'javax.servlet:javax.servlet-api:3.0.1'
+    )
+    testCompile "junit:junit:4.11"
+
+    [compileJava, compileTestJava]*.options*.encoding = fileEncoding
+    [compileJava, compileTestJava]*.options*.compilerArgs = ['-Xlint:-options']
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+}
+
+eclipse {
+    classpath {
+        file.withXml { xml ->
+            def node = xml.asNode()
+            node.remove( node.find { it.@path == 'org.eclipse.jst.j2ee.internal.web.container' } )
+            node.appendNode( 'classpathentry', [ kind: 'con', path: 'org.eclipse.jst.j2ee.internal.web.container', exported: 'true'])
+        }
+    }
+    wtp {
+        component {
+            contextPath = "/"
+        }
+        facet {
+            facet name: 'jst.web', version: '3.0'
+            facet name: 'jst.java', version: '1.7'
+        }
+    }
+}
